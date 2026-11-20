@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "boardinspect"
+version = "0.1.0"
+description = "Offline desktop web app that finds missing components on PCBs by comparing inspection photos against a reference photo."
+requires-python = ">=3.10"
+# Runtime dependencies are pinned in requirements.txt (project convention),
+# not duplicated here, so that offline installs use one source of truth.
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

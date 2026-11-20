@@ -1,0 +1,27 @@
+.kiro/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+
+# Packaging artifacts
+*.egg-info/
+dist/
+build/
+
+# Test caches
+.pytest_cache/
+
+# Runtime data (uploads, saved setups, job files)
+data/runtime/
+
+# Coverage and logs
+.coverage
+*.log
+
+AI_COLLAB.md

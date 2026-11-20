@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "description": "Shared test vectors for coordinate-utils.js and coordinates.py. All pixel_box values computed by running coordinates.py with min_size=1.",
+  "vectors": [
+    {
+      "id": "centre_box",
+      "description": "5% box centred in a 1000x800 image — straightforward centre case",
+      "image_width": 1000,
+      "image_height": 800,
+      "norm_box": [0.475, 0.475, 0.05, 0.05],
+      "pixel_box": [475, 380, 50, 40],
+      "min_size": 1
+    },
+    {
+      "id": "demo_exact",
+      "description": "10% box exactly centred in a 1000x800 image — the canonical demo case",
+      "image_width": 1000,
+      "image_height": 800,
+      "norm_box": [0.5, 0.5, 0.1, 0.1],
+      "pixel_box": [500, 400, 100, 80],
+      "min_size": 1
+    },
+    {
+      "id": "origin_box",
+      "description": "10% box at the top-left corner of a 640x480 image",
+      "image_width": 640,
+      "image_height": 480,
+      "norm_box": [0.0, 0.0, 0.1, 0.1],
+      "pixel_box": [0, 0, 64, 48],
+      "min_size": 1
+    },
+    {
+      "id": "border_box_right",
+      "description": "Box that starts at 95% from left and extends 10% — clamped at right edge (640-608=32 px wide)",
+      "image_width": 640,
+      "image_height": 480,
+      "norm_box": [0.95, 0.5, 0.1, 0.1],
+      "pixel_box": [608, 240, 32, 48],
+      "min_size": 1
+    },
+    {
+      "id": "full_image",
+      "description": "Box that covers the full 100x100 image",
+      "image_width": 100,
+      "image_height": 100,
+      "norm_box": [0.0, 0.0, 1.0, 1.0],
+      "pixel_box": [0, 0, 100, 100],
+      "min_size": 1
+    },
+    {
+      "id": "tiny_1px",
+      "description": "Very small normalised box (0.1%) in a 100x100 image — minimum size of 1 px enforced",
+      "image_width": 100,
+      "image_height": 100,
+      "norm_box": [0.5, 0.5, 0.001, 0.001],
+      "pixel_box": [50, 50, 1, 1],
+      "min_size": 1
+    },
+    {
+      "id": "high_res",
+      "description": "5% box at 10% offset in a large 4096x3072 image",
+      "image_width": 4096,
+      "image_height": 3072,
+      "norm_box": [0.1, 0.1, 0.05, 0.05],
+      "pixel_box": [410, 307, 205, 154],
+      "min_size": 1
+    },
+    {
+      "id": "non_square_image",
+      "description": "50% wide, 50% tall box at 25% offset in a 1920x1080 (16:9) image",
+      "image_width": 1920,
+      "image_height": 1080,
+      "norm_box": [0.25, 0.25, 0.5, 0.5],
+      "pixel_box": [480, 270, 960, 540],
+      "min_size": 1
+    }
+  ]
+}

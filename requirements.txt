@@ -1,0 +1,9 @@
+# Runtime dependencies for BoardInspect (exact pins, installable offline from a wheel cache).
+# Computer vision core
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+
+# Backend web server (loopback only)
+fastapi==0.115.6
+uvicorn==0.34.0
+python-multipart==0.0.20
