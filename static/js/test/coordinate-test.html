@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Coordinate Utils — Browser Tests</title>
+  <style>
+    /* ── Design tokens ───────────────────────────────────────────────── */
+    :root {
+      --pass:        #2e7d32;
+      --pass-bg:     #e8f5e9;
+      --fail:        #c62828;
+      --fail-bg:     #ffebee;
+      --warn-bg:     #fff8e1;
+      --warn-border: #f9a825;
+      --border:      #ccc;
+      --header-bg:   #1a237e;
+      --header-fg:   #ffffff;
+      --row-alt:     #f9f9f9;
+      --font:        system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --mono:        "Cascadia Code", "Fira Mono", "Consolas", monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      font-size: 0.95rem;
+      background: #f5f5f5;
+      color: #212121;
+      min-height: 100vh;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────── */
+    header {
+      background: var(--header-bg);
+      color: var(--header-fg);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+    header h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.03em; }
+    header p  { font-size: 0.8rem; opacity: 0.8; }
+
+    /* ── Main content ────────────────────────────────────────────────── */
+    main { max-width: 900px; margin: 2rem auto; padding: 0 1.5rem 3rem; }
+
+    .description {
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .description code { font-family: var(--mono); background: #e8e8e8; padding: 1px 4px; border-radius: 3px; }
+
+    /* ── Status / loading ───────────────────────────────────────────── */
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #555;
+      padding: 1.5rem 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 20px; height: 20px;
+      border: 3px solid #ccc;
+      border-top-color: var(--header-bg);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    /* ── Error banner ───────────────────────────────────────────────── */
+    .error-banner {
+      border: 1px solid var(--warn-border);
+      background: var(--warn-bg);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    .error-banner strong { display: block; margin-bottom: 0.4rem; }
+
+    /* ── Summary card ───────────────────────────────────────────────── */
+    .summary {
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    .summary.all-pass { background: var(--pass-bg); color: var(--pass); border: 1.5px solid var(--pass); }
+    .summary.has-fail { background: var(--fail-bg); color: var(--fail); border: 1.5px solid var(--fail); }
+    .summary-icon { font-size: 1.4rem; line-height: 1; }
+
+    /* ── Results table ───────────────────────────────────────────────── */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #fff;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.82rem;
+      font-family: var(--mono);
+    }
+    thead th {
+      background: #f0f0f0;
+      border-bottom: 2px solid var(--border);
+      padding: 8px 12px;
+      text-align: left;
+      font-family: var(--font);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #444;
+      white-space: nowrap;
+    }
+    tbody tr:nth-child(even) { background: var(--row-alt); }
+    tbody tr:focus-visible { outline: 2px solid var(--header-bg); outline-offset: -2px; }
+    td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #e8e8e8;
+      vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .vector-id { font-weight: 600; color: #333; }
+    .description-cell { font-family: var(--font); font-size: 0.78rem; color: #666; }
+
+    /* ── Pass / Fail badges ─────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      font-family: var(--font);
+      white-space: nowrap;
+    }
+    .badge.pass { background: var(--pass-bg); color: var(--pass); }
+    .badge.fail { background: var(--fail-bg); color: var(--fail); }
+
+    .mismatch { color: var(--fail); }
+
+    /* ── Section heading ─────────────────────────────────────────────── */
+    h2 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #555;
+      margin-bottom: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>BoardInspect — coordinate-utils.js</h1>
+  <p>Browser tests against shared Python vectors</p>
+</header>
+
+<main>
+  <p class="description">
+    Loads <code>tests/vectors/coordinates.json</code> (shared with
+    <code>coordinates.py</code>) and runs <code>normalizedToPixel</code> on
+    each vector. A round-trip check via <code>pixelToNormalized</code> is also
+    reported. All results must match the Python converter.
+  </p>
+
+  <div id="output">
+    <div class="loading">
+      <span class="spinner" aria-hidden="true"></span>
+      Loading test vectors…
+    </div>
+  </div>
+</main>
+
+<script type="module">
+import { normalizedToPixel, pixelToNormalized, clampBox }
+  from '../coordinate-utils.js';
+
+const output = document.getElementById('output');
+
+// ── Helpers ────────────────────────────────────────────────────────────
+
+/** Deep-equality for integer arrays. */
+function arrEq(a, b) {
+  return Array.isArray(a) && Array.isArray(b)
+    && a.length === b.length
+    && a.every((v, i) => v === b[i]);
+}
+
+/** Format a number array as a compact string. */
+function fmt(arr) {
+  return '[' + arr.map(v =>
+    Number.isInteger(v) ? v : v.toFixed(6)
+  ).join(', ') + ']';
+}
+
+// ── Test runner ────────────────────────────────────────────────────────
+
+function runAll(vectors) {
+  let passed = 0;
+  let failed = 0;
+
+  const rows = vectors.map(v => {
+    const minSize = v.min_size ?? 1;
+
+    // Primary test: normalizedToPixel must match the shared pixel_box.
+    const got = normalizedToPixel(v.norm_box, v.image_width, v.image_height, minSize);
+    const ok  = arrEq(got, v.pixel_box);
+
+    // Round-trip: pixel_box → normalised → pixel should return pixel_box.
+    const normRt   = pixelToNormalized(v.pixel_box, v.image_width, v.image_height);
+    const pixelRt  = normalizedToPixel(normRt, v.image_width, v.image_height, minSize);
+    const rtOk     = arrEq(pixelRt, v.pixel_box);
+
+    if (ok) passed++; else failed++;
+
+    const badge = ok
+      ? '<span class="badge pass" aria-label="pass">✓ PASS</span>'
+      : '<span class="badge fail" aria-label="fail">✗ FAIL</span>';
+
+    const rtBadge = rtOk
+      ? '<span class="badge pass" aria-label="round-trip pass">✓</span>'
+      : '<span class="badge fail" aria-label="round-trip fail">✗</span>';
+
+    const gotCell = ok
+      ? fmt(got)
+      : `<span class="mismatch">${fmt(got)}</span>`;
+
+    return `
+      <tr>
+        <td class="vector-id">${v.id}</td>
+        <td class="description-cell">${v.description}</td>
+        <td>${fmt(v.norm_box)}</td>
+        <td>${fmt(v.pixel_box)}</td>
+        <td>${gotCell}</td>
+        <td>${badge}</td>
+        <td>${rtBadge}</td>
+      </tr>`;
+  }).join('');
+
+  const allOk     = failed === 0;
+  const sumClass  = allOk ? 'all-pass' : 'has-fail';
+  const sumIcon   = allOk ? '✓' : '✗';
+  const sumMsg    = allOk
+    ? `All ${passed} vectors match the Python converter.`
+    : `${passed} passed, ${failed} failed — mismatch with Python converter!`;
+
+  output.innerHTML = `
+    <div class="summary ${sumClass}" role="status" aria-live="polite">
+      <span class="summary-icon" aria-hidden="true">${sumIcon}</span>
+      <span>${sumMsg}</span>
+    </div>
+    <h2>Vector results</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Vector ID</th>
+            <th>Description</th>
+            <th>Norm box</th>
+            <th>Expected px</th>
+            <th>Got px</th>
+            <th>Result</th>
+            <th>Round-trip</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── Bootstrap ──────────────────────────────────────────────────────────
+
+async function main() {
+  const url = '/tests/vectors/coordinates.json';
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+    const data = await resp.json();
+    if (!Array.isArray(data.vectors) || data.vectors.length === 0) {
+      throw new Error('JSON loaded but "vectors" array is empty or missing.');
+    }
+    runAll(data.vectors);
+  } catch (err) {
+    output.innerHTML = `
+      <div class="error-banner" role="alert">
+        <strong>Could not load test vectors</strong>
+        Failed to fetch <code>${url}</code>: ${err.message}<br><br>
+        Open this page through the BoardInspect server
+        (<code>python run.py</code>) so the JSON file is served correctly.
+      </div>`;
+  }
+}
+
+main();
+</script>
+</body>
+</html>

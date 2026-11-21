@@ -7,9 +7,143 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-  <main>
-    <h1>BoardInspect</h1>
-    <p>Page placeholder. The full interface is built in a later task.</p>
+  <header class="app-header">
+    <span class="app-logo">🔍</span>
+    <h1 class="app-title">BoardInspect</h1>
+    <p class="app-subtitle">Offline PCB component checker</p>
+  </header>
+
+  <nav class="stepper" aria-label="Steps">
+    <button class="step-btn active" id="step-btn-1" aria-current="step" disabled>
+      <span class="step-num">1</span>
+      <span class="step-label">Reference</span>
+    </button>
+    <div class="step-connector" aria-hidden="true"></div>
+    <button class="step-btn" id="step-btn-2" disabled>
+      <span class="step-num">2</span>
+      <span class="step-label">Name Parts</span>
+    </button>
+    <div class="step-connector" aria-hidden="true"></div>
+    <button class="step-btn" id="step-btn-3" disabled>
+      <span class="step-num">3</span>
+      <span class="step-label">Inspect</span>
+    </button>
+  </nav>
+
+  <main class="app-main">
+    <!-- Step 1: Upload reference image -->
+    <section id="step-reference" class="step-section active" aria-label="Step 1: Upload Reference">
+      <h2>Upload Reference Image</h2>
+      <p class="step-description">Upload a photo of a <strong>complete, good board</strong> to use as the reference.</p>
+
+      <div id="reference-drop-zone" class="drop-zone" role="button" tabindex="0"
+           aria-label="Drop reference image here or click to browse">
+        <div class="drop-zone-inner">
+          <span class="drop-icon" aria-hidden="true">📷</span>
+          <p class="drop-text">Drag &amp; drop a JPEG or PNG here</p>
+          <p class="drop-subtext">or <span class="link-text">click to browse</span></p>
+          <input type="file" id="reference-file-input" accept="image/*" class="visually-hidden"
+                 aria-label="Choose reference image file" />
+        </div>
+      </div>
+
+      <div id="reference-preview" class="preview-area hidden" aria-live="polite">
+        <img id="reference-img" src="" alt="Reference board preview" class="preview-image" />
+        <div class="preview-meta">
+          <span id="reference-info"></span>
+          <button id="btn-change-reference" class="btn-secondary btn-sm">Change</button>
+        </div>
+      </div>
+
+      <div id="reference-error" class="error-banner hidden" role="alert" aria-live="assertive"></div>
+
+      <div class="step-actions">
+        <button id="btn-next-to-annotate" class="btn-primary" disabled>
+          Next: Name Parts →
+        </button>
+      </div>
+    </section>
+
+    <!-- Step 2: Annotate parts -->
+    <section id="step-annotate" class="step-section hidden" aria-label="Step 2: Name Parts">
+      <h2>Name the Parts</h2>
+      <p class="step-description">Draw a box around each component and give it a name.</p>
+
+      <div class="annotate-layout">
+        <div class="canvas-container">
+          <canvas id="annotation-canvas" tabindex="0"
+                  aria-label="Reference image annotation canvas — draw boxes around parts"></canvas>
+        </div>
+        <aside class="parts-sidebar">
+          <h3>Parts <span id="parts-count" class="badge">0</span></h3>
+          <ul id="parts-list" class="parts-list" aria-label="Annotated parts list"></ul>
+          <p id="parts-hint" class="hint-text">Click and drag on the image to draw a part box.</p>
+        </aside>
+      </div>
+
+      <div id="annotate-error" class="error-banner hidden" role="alert" aria-live="assertive"></div>
+
+      <div class="step-actions">
+        <button id="btn-back-to-reference" class="btn-secondary">← Back</button>
+        <button id="btn-calibrate" class="btn-primary" disabled>
+          Calibrate &amp; Continue →
+        </button>
+      </div>
+
+      <div id="calibrate-progress" class="progress-area hidden" aria-live="polite">
+        <p>Calibrating parts… <span id="calibrate-status">0 / 0</span></p>
+        <progress id="calibrate-bar" value="0" max="100"></progress>
+      </div>
+    </section>
+
+    <!-- Step 3: Inspect -->
+    <section id="step-inspect" class="step-section hidden" aria-label="Step 3: Inspect">
+      <h2>Inspect Board Photos</h2>
+      <p class="step-description">Upload 1–3 inspection photos of the same board type.</p>
+
+      <div id="inspect-drop-zone" class="drop-zone" role="button" tabindex="0"
+           aria-label="Drop inspection images here or click to browse">
+        <div class="drop-zone-inner">
+          <span class="drop-icon" aria-hidden="true">🔎</span>
+          <p class="drop-text">Drag &amp; drop up to 3 images</p>
+          <p class="drop-subtext">or <span class="link-text">click to browse</span></p>
+          <input type="file" id="inspect-file-input" accept="image/*" multiple
+                 class="visually-hidden" aria-label="Choose inspection image files" />
+        </div>
+      </div>
+
+      <div id="inspect-results" class="results-grid" aria-live="polite" aria-label="Inspection results"></div>
+
+      <div id="inspect-error" class="error-banner hidden" role="alert" aria-live="assertive"></div>
+
+      <div class="step-actions">
+        <button id="btn-back-to-annotate" class="btn-secondary">← Back</button>
+        <button id="btn-inspect-again" class="btn-secondary hidden">Inspect More</button>
+
+        <div class="sensitivity-row">
+          <label for="sensitivity-slider" class="sensitivity-label">
+            Sensitivity
+            <span class="sensitivity-hint">(lenient ← → strict)</span>
+          </label>
+          <input type="range" id="sensitivity-slider" min="0" max="100" value="50"
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
+                 aria-label="Detection sensitivity" />
+          <span id="sensitivity-value" class="sensitivity-value">50</span>
+        </div>
+      </div>
+
+      <div id="debug-panel" class="debug-panel hidden">
+        <button id="btn-toggle-debug" class="btn-ghost btn-sm">▶ Show per-part scores</button>
+        <div id="debug-content" class="debug-content hidden"></div>
+      </div>
+    </section>
   </main>
+
+  <footer class="app-footer">
+    <span>BoardInspect — offline PCB inspector</span>
+    <button id="btn-start-over" class="btn-ghost btn-sm">Start over</button>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -1,0 +1,6 @@
+{
+  "case": "complete_board",
+  "expected_status": "ok",
+  "expected_missing": [],
+  "note": "reference inspected against itself; all parts should be present"
+}
