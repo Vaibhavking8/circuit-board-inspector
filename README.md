@@ -35,6 +35,16 @@ Copy the `wheels/` folder and `requirements.txt` to the demo laptop, then instal
 pip install --no-index --find-links=wheels/ -r requirements.txt
 ```
 
+## Verify install
+
+After installing, run the verification script to confirm everything is working:
+
+```bash
+python tools/verify_install.py
+```
+
+All checks should pass before attempting the demo.
+
 ## Usage
 
 1. **Reference** — drag and drop a photo of a complete, good board.

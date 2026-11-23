@@ -1,6 +1,8 @@
 {
   "case": "missing_c1",
-  "expected_status": "ok",
-  "expected_missing": [],
+  "expected_status": "missing_parts",
+  "expected_missing": [
+    "c1"
+  ],
   "note": "C1 region inpainted; pipeline should flag c1 as missing"
 }

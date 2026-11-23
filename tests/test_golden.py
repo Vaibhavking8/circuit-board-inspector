@@ -67,22 +67,57 @@ _W, _H = 400, 300
 def _make_synthetic_board(seed: int = 42) -> np.ndarray:
     """Create a deterministic synthetic PCB-like image (300 × 400 BGR).
 
-    Background simulates a mid-green PCB substrate.  Two distinct component
-    regions are painted with clearly different intensities so the template
-    and edge signals can distinguish present vs absent reliably.
+    Background: mid-tone greenish substrate with mild per-pixel noise so the
+    board has non-zero variance (required for TM_CCOEFF_NORMED to behave
+    normally).
+
+    Components have *internal* texture — alternating bright/dark lines painted
+    over the base region so that each part crop has high internal variance
+    (std ≳ 15).  This ensures TM_CCOEFF_NORMED returns a high score (~1.0)
+    when the part is present and a clearly low score (≲ 0.1) when it has been
+    inpainted away with background texture.  Uniform colour blocks cause
+    TM_CCOEFF_NORMED to return degenerate values and cannot be used here.
+
+    Part boxes (normalised x, y, w, h):
+      C1: (0.10, 0.10, 0.25, 0.25) → pixels x=40, y=30, w=100, h=75
+      C2: (0.60, 0.60, 0.25, 0.25) → pixels x=240, y=180, w=100, h=75
     """
     rng = np.random.default_rng(seed)
-    # Mid-tone greenish substrate with mild texture noise
+
+    # Textured background: mid-tone green with ±15 noise
     board = rng.integers(60, 100, (_H, _W, 3), dtype=np.uint8)
-    board[:, :, 1] = np.clip(board[:, :, 1].astype(np.int32) + 30, 0, 255).astype(np.uint8)
+    board[:, :, 1] = np.clip(
+        board[:, :, 1].astype(np.int32) + 30, 0, 255
+    ).astype(np.uint8)
 
-    # C1: bright rectangular component in the top-left quadrant
-    # Normalised box: (0.10, 0.10, 0.25, 0.25) → pixel (40, 30, 100, 75)
-    board[30:105, 40:140] = rng.integers(190, 230, (75, 100, 3), dtype=np.uint8)
+    def _textured_part(
+        base_lo: int, base_hi: int, h: int, w: int, stripe_val: int
+    ) -> np.ndarray:
+        """Fill a region with base noise and add horizontal+vertical stripes."""
+        patch = rng.integers(base_lo, base_hi, (h, w, 3), dtype=np.uint8)
+        # Horizontal stripes every 8 px (clear internal gradient)
+        patch[4::8, :, :] = np.clip(
+            patch[4::8, :, :].astype(np.int32) + stripe_val, 0, 255
+        ).astype(np.uint8)
+        # Vertical stripes every 10 px
+        patch[:, 5::10, :] = np.clip(
+            patch[:, 5::10, :].astype(np.int32) + stripe_val, 0, 255
+        ).astype(np.uint8)
+        return patch
 
-    # C2: dark component in the bottom-right quadrant
-    # Normalised box: (0.60, 0.60, 0.25, 0.25) → pixel (240, 180, 100, 75)
-    board[180:255, 240:340] = rng.integers(10, 40, (75, 100, 3), dtype=np.uint8)
+    # C1: bright component (base 185–220, stripes +35) — top-left quadrant
+    board[30:105, 40:140] = _textured_part(185, 220, 75, 100, 35)
+
+    # C2: dark component (base 15–45, stripes −10 clamped)  — bottom-right
+    # For C2 stripes we subtract rather than add so internal contrast remains.
+    c2_patch = rng.integers(20, 50, (75, 100, 3), dtype=np.uint8)
+    c2_patch[4::8, :, :] = np.clip(
+        c2_patch[4::8, :, :].astype(np.int32) + 30, 0, 255
+    ).astype(np.uint8)
+    c2_patch[:, 5::10, :] = np.clip(
+        c2_patch[:, 5::10, :].astype(np.int32) + 30, 0, 255
+    ).astype(np.uint8)
+    board[180:255, 240:340] = c2_patch
 
     return board
 
